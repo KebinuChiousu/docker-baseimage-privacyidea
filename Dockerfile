@@ -15,25 +15,29 @@ MAINTAINER Kevin Meredith <kevin@meredithkm.info>
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:privacyidea/privacyidea \
     && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && apt-get install -y python-privacyidea python-pip libmysqlclient-dev nginx-full uwsgi
+    && apt-get install -y python-privacyidea python-pip libmysqlclient-dev uwsgi-plugin-python uwsgi
 
 RUN pip install --upgrade pip
 RUN pip install MySQL-python
 
 RUN groupadd -g 500 privacyidea
 RUN useradd -u 500 privacyidea -g privacyidea
+RUN mkdir -p /etc/privacyidea
+RUN chown privacyidea:privacyidea /etc/privacyidea
+RUN chmod 775 /etc/privacyidea
 
 # Add additional binaries into PATH for convenience
 #ENV PATH=$PATH:/usr/local/openresty/luajit/bin/:/usr/local/openresty/nginx/sbin/:/usr/local/openresty/bin/
 
-# Setup openresty service
-#RUN mkdir /etc/service/openresty
-#COPY openresty.sh /etc/service/openresty/run
-#RUN chmod +x /etc/service/openresty/run
+# Setup uwsgi service
+RUN mkdir /etc/service/uwsgi
+COPY service/uwsgi.sh /etc/service/uwsgi/run
+RUN chmod +x /etc/service/uwsgi/run
 
-EXPOSE 80
+RUN mkdir -p /var/log/privacyidea
+
+EXPOSE 3031
 VOLUME /etc/privacyidea/
-VOLUME /etc/uwsgi/
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
