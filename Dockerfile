@@ -1,44 +1,54 @@
-# Use phusion/baseimage as base image. To make your builds reproducible, make
+# Use phusion/passenger-full as base image. To make your builds reproducible, make
 # sure you lock down to a specific version, not to `latest`!
-# See https://github.com/phusion/baseimage-docker/blob/master/Changelog.md for
+# See https://github.com/phusion/passenger-docker/blob/master/Changelog.md for
 # a list of version numbers.
-FROM phusion/baseimage:0.9.22
-
-# Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
-
-# ...put your own build instructions here...
+FROM phusion/passenger-customizable:0.9.25
 
 MAINTAINER Kevin Meredith <kevin@meredithkm.info>
 
+# Set correct environment variables.
+ENV HOME /root
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:privacyidea/privacyidea \
+# Use baseimage-docker's init process.
+CMD ["/sbin/my_init"]
+
+# If you're using the 'customizable' variant, you need to explicitly opt-in
+# for features. 
+#
+# N.B. these images are based on https://github.com/phusion/baseimage-docker, 
+# so anything it provides is also automatically on board in the images below 
+# (e.g. older versions of Ruby, Node, Python).  
+# 
+# Uncomment the features you want:
+#
+#   Ruby support
+#RUN /pd_build/ruby-2.0.*.sh
+#RUN /pd_build/ruby-2.1.*.sh
+#RUN /pd_build/ruby-2.2.*.sh
+#RUN /pd_build/ruby-2.3.*.sh
+#RUN /pd_build/ruby-2.4.*.sh
+#RUN /pd_build/jruby-9.1.*.sh
+#   Python support.
+RUN /pd_build/python.sh
+#   Node.js and Meteor standalone support.
+#   (not needed if you already have the above Ruby support)
+#RUN /pd_build/nodejs.sh
+
+# ...put your own build instructions here...
+
+RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:privacyidea/privacyidea \
     && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && apt-get install -y python-privacyidea python-pip libmysqlclient-dev uwsgi-plugin-python uwsgi
+    && apt-get install -y python-privacyidea python-pip libmysqlclient-dev
 
 RUN pip install --upgrade pip
 RUN pip install MySQL-python
 
-RUN groupadd -g 500 privacyidea
-RUN useradd -u 500 privacyidea -g privacyidea
-RUN mkdir -p /etc/privacyidea
-RUN chown privacyidea:privacyidea /etc/privacyidea
-RUN chmod 775 /etc/privacyidea
+RUN mkdir /etc/privacyidea
+RUN chown app:app /etc/privacyidea
 
-# Add additional binaries into PATH for convenience
-#ENV PATH=$PATH:/usr/local/openresty/luajit/bin/:/usr/local/openresty/nginx/sbin/:/usr/local/openresty/bin/
+RUN rm -f /etc/service/nginx/down
 
-# Setup uwsgi service
-RUN mkdir /etc/service/uwsgi
-COPY service/uwsgi.sh /etc/service/uwsgi/run
-RUN chmod +x /etc/service/uwsgi/run
-
-RUN mkdir -p /var/log/privacyidea
-
-EXPOSE 3031
 VOLUME /etc/privacyidea/
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
