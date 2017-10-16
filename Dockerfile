@@ -47,7 +47,7 @@ RUN mkdir /etc/privacyidea
 RUN chown app:app /etc/privacyidea
 
 RUN rm -f /etc/nginx/sites-enabled/default
-ADD ./nginx/sites-enabled/privacyidea.conf
+ADD ./nginx/sites-enabled/privacyidea.conf /etc/nginx/sites-enabled/privacyidea.conf
 RUN rm -f /etc/service/nginx/down
 
 VOLUME /etc/privacyidea/
