@@ -1,6 +1,6 @@
 MAINTAINER=meredithkm
 TAG=baseimage-privacyidea
-VERSION=0.2
+VERSION=0.8
 
 build:
 	docker build -t $(MAINTAINER)/$(TAG):$(VERSION) --rm .

@@ -1,0 +1,18 @@
+server {
+    listen 80;
+    server_name _;
+
+    # Tell Nginx and Passenger where your app's 'public' directory is
+    root /var/www/pi;
+
+    # Turn on Passenger
+    passenger_enabled on;
+    
+    # This Flask web app will use Python 2.7
+    passenger_python /usr/bin/python2.7;
+
+    passenger_app_root /var/www/pi;
+
+    passenger_friendly_error_pages on;
+
+}
